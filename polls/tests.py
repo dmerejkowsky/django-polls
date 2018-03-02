@@ -2,6 +2,7 @@ import datetime
 
 from django.utils import timezone
 from django.urls import reverse
+import pytest
 
 from .models import Question
 
@@ -73,6 +74,7 @@ def test_no_questions(client):
     assert not latest_list
 
 
+@pytest.mark.django_db
 def test_past_question(client):
     """
     Questions with a pub_date in the past are displayed on the
@@ -83,6 +85,7 @@ def test_past_question(client):
     assert_question_list_equals(latest_list, ["Past question."])
 
 
+@pytest.mark.django_db
 def test_future_question(client):
     """
     Questions with a pub_date in the future aren't displayed on
@@ -95,6 +98,7 @@ def test_future_question(client):
     assert not latest_list
 
 
+@pytest.mark.django_db
 def test_future_question_and_past_question(client):
     """
     Even if both past and future questions exist, only past questions
@@ -106,6 +110,7 @@ def test_future_question_and_past_question(client):
     assert_question_list_equals(latest_list, ["Past question."])
 
 
+@pytest.mark.django_db
 def test_two_past_questions(client):
     """
     The questions index page may display multiple questions.

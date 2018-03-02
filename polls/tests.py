@@ -97,3 +97,13 @@ def test_two_past_questions(client):
     latest_list = get_latest_list(client)
     expected_texts = ["Past question 2.", "Past question 1."]
     assert_question_list_equals(latest_list, expected_texts)
+
+
+@pytest.mark.django_db
+def test_latest_five(client):
+    for i in range(0, 10):
+        pub_date = n_days_ago(i)
+        create_question("Question #%s" % i, pub_date=pub_date)
+    response = client.get(reverse('polls:index'))
+    actual_list = response.context['latest_question_list']
+    assert len(actual_list) == 5

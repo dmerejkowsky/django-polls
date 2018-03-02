@@ -53,7 +53,7 @@ class QuestionIndexViewTests(TestCase):
         """
         response = self.client.get(reverse('polls:index'))
         assert response.status_code == 200
-        self.assertContains(response, "No polls are available.")
+        assert "No polls are available." in response.rendered_content
         self.assertQuerysetEqual(
             response.context['latest_question_list'],
             []
@@ -78,7 +78,7 @@ class QuestionIndexViewTests(TestCase):
         """
         create_question(question_text="Future question.", days=30)
         response = self.client.get(reverse('polls:index'))
-        self.assertContains(response, "No polls are available.")
+        assert "No polls are available." in response.rendered_content
         self.assertQuerysetEqual(
             response.context['latest_question_list'],
             []

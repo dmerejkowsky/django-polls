@@ -7,6 +7,14 @@ import pytest
 from .models import Question
 
 
+def n_days_ago(n):
+    return timezone.now() - datetime.timedelta(days=n)
+
+
+def n_days_later(n):
+    return timezone.now() + datetime.timedelta(days=n)
+
+
 def test_was_published_recently_with_future_question():
     """
     was_published_recently() returns False for questions whose pub_date
@@ -37,14 +45,16 @@ def test_was_published_recently_with_recent_question():
     assert recent_question.was_published_recently()
 
 
-def create_question(question_text, days):
+def create_question(question_text, *, pub_date=None):
     """
-    Create a question with the given `question_text` and published the
-    given number of `days` offset to now (negative for questions published
-    in the past, positive for questions that have yet to be published).
+    Create a question with the given `question_text`.
+
+    If `pub_date` is None, the question was published right, now.
     """
-    time = timezone.now() + datetime.timedelta(days=days)
-    return Question.objects.create(question_text=question_text, pub_date=time)
+    if not pub_date:
+        pub_date = timezone.now()
+    res = Question.objects.create(question_text=question_text, pub_date=pub_date)
+    return res
 
 
 def get_latest_list(client):
@@ -80,7 +90,7 @@ def test_past_question(client):
     Questions with a pub_date in the past are displayed on the
     index page.
     """
-    create_question(question_text="Past question.", days=-30)
+    create_question(question_text="Past question.", pub_date=n_days_ago(30))
     latest_list = get_latest_list(client)
     assert_question_list_equals(latest_list, ["Past question."])
 
@@ -91,7 +101,7 @@ def test_future_question(client):
     Questions with a pub_date in the future aren't displayed on
     the index page.
     """
-    create_question(question_text="Future question.", days=30)
+    create_question(question_text="Future question.", pub_date=n_days_later(30))
     response = client.get(reverse('polls:index'))
     assert_no_polls(response.rendered_content)
     latest_list = get_latest_list(client)
@@ -104,8 +114,8 @@ def test_future_question_and_past_question(client):
     Even if both past and future questions exist, only past questions
     are displayed.
     """
-    create_question(question_text="Past question.", days=-30)
-    create_question(question_text="Future question.", days=30)
+    create_question(question_text="Past question.", pub_date=n_days_ago(30))
+    create_question(question_text="Future question.", pub_date=n_days_later(30))
     latest_list = get_latest_list(client)
     assert_question_list_equals(latest_list, ["Past question."])
 
@@ -115,8 +125,8 @@ def test_two_past_questions(client):
     """
     The questions index page may display multiple questions.
     """
-    create_question(question_text="Past question 1.", days=-30)
-    create_question(question_text="Past question 2.", days=-5)
+    create_question(question_text="Past question 1.", pub_date=n_days_ago(30))
+    create_question(question_text="Past question 2.", pub_date=n_days_ago(5))
     latest_list = get_latest_list(client)
     expected_texts = ["Past question 2.", "Past question 1."]
     assert_question_list_equals(latest_list, expected_texts)

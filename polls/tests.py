@@ -152,3 +152,12 @@ class TestPolls(LiveServerTestCase):
     def test_home_no_polls(self):
         self.browser.get("/polls")
         assert_no_polls(self.browser.page_source)
+
+    def test_home_list_polls(self):
+        create_question("One?")
+        create_question("Two?")
+        create_question("Three?")
+        self.browser.get("/polls")
+        first_link = self.browser.find_element(tag_name="a")
+        first_link.click()
+        assert "Three?" in self.browser.page_source

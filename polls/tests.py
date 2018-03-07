@@ -1,7 +1,11 @@
 import datetime
+import urllib.parse
 
 from django.utils import timezone
+
+from django.test import LiveServerTestCase
 from django.urls import reverse
+import selenium.webdriver
 import pytest
 
 from .models import Question
@@ -107,3 +111,23 @@ def test_latest_five(client):
     response = client.get(reverse('polls:index'))
     actual_list = response.context['latest_question_list']
     assert len(actual_list) == 5
+
+
+class TestPolls(LiveServerTestCase):
+    serialized_rollback = True
+
+    def setUpClass(cls):
+        super().setUpClass()
+
+    def setUp(self):
+        super().setUp()
+        # Now self.live_server_url should be set properly and we can use in the test_ methods:
+        self.driver = selenium.webdriver.Firefox()
+
+    def tearDown(self):
+        self.driver.close()
+
+    def test_home_no_polls(self):
+        url = urllib.parse.urljoin(self.live_server_url, "polls/")
+        self.driver.get(url)
+        assert_no_polls(self.browser.page_source)

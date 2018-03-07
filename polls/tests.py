@@ -113,21 +113,42 @@ def test_latest_five(client):
     assert len(actual_list) == 5
 
 
-class TestPolls(LiveServerTestCase):
-    serialized_rollback = True
+class Browser:
+    """ A nice facade on top of selenium stuff """
+    def __init__(self, driver):
+        self.driver = driver
+        self.live_server_url = None  # will be set during test set up
 
-    def setUpClass(cls):
-        super().setUpClass()
+    def find_element(self, **kwargs):
+        assert len(kwargs) == 1   # we want exactly one named parameter here
+        name, value = list(kwargs.items())[0]
+        func_name = "find_element_by_" + name
+        func = getattr(self.driver, func_name)
+        return func(value)
 
-    def setUp(self):
-        super().setUp()
-        # Now self.live_server_url should be set properly and we can use in the test_ methods:
-        self.driver = selenium.webdriver.Firefox()
+    def get(self, url):
+        full_url = urllib.parse.urljoin(self.live_server_url, url)
+        self.driver.get(full_url)
 
-    def tearDown(self):
+    @property
+    def page_source(self):
+        return self.driver.page_source
+
+    def close(self):
         self.driver.close()
 
+
+class TestPolls(LiveServerTestCase):
+    def setUp(self):
+        super().setUp()
+        driver = selenium.webdriver.Chrome()
+        self.browser = Browser(driver)
+        self.browser.live_server_url = self.live_server_url
+
+    def tearDown(self):
+        self.browser.close()
+        super().tearDown()
+
     def test_home_no_polls(self):
-        url = urllib.parse.urljoin(self.live_server_url, "polls/")
-        self.driver.get(url)
+        self.browser.get("/polls")
         assert_no_polls(self.browser.page_source)

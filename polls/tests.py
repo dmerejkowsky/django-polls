@@ -58,13 +58,17 @@ def assert_question_list_equals(actual_questions, expected_texts):
         assert actual_question.question_text == expected_text
 
 
+def assert_no_polls(text):
+    assert "No polls are available." in text
+
+
 class QuestionIndexViewTests(TestCase):
     def test_no_questions(self):
         """
         If no questions exist, an appropriate message is displayed.
         """
         response = self.client.get(reverse('polls:index'))
-        assert "No polls are available." in response.rendered_content
+        assert_no_polls(response.rendered_content)
 
         latest_list = get_latest_list(self.client)
         assert not latest_list
@@ -85,7 +89,7 @@ class QuestionIndexViewTests(TestCase):
         """
         create_question(question_text="Future question.", days=30)
         response = self.client.get(reverse('polls:index'))
-        assert "No polls are available." in response.rendered_content
+        assert_no_polls(response.rendered_content)
         latest_list = get_latest_list(self.client)
         assert not latest_list
 

@@ -139,15 +139,20 @@ class Browser:
 
 
 class TestPolls(LiveServerTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        driver = selenium.webdriver.Chrome()
+        cls.browser = Browser(driver)
+
     def setUp(self):
         super().setUp()
-        driver = selenium.webdriver.Chrome()
-        self.browser = Browser(driver)
         self.browser.live_server_url = self.live_server_url
 
-    def tearDown(self):
-        self.browser.close()
-        super().tearDown()
+    @classmethod
+    def tearDownClass(cls):
+        cls.browser.close()
+        super().tearDownClass()
 
     def test_home_no_polls(self):
         self.browser.get("/polls")

@@ -20,8 +20,8 @@ def test_was_published_recently_with_future_question():
     was_published_recently() returns False for questions whose pub_date
     is in the future.
     """
-    time = timezone.now() + datetime.timedelta(days=30)
-    future_question = Question('Back from the future', pub_date=time)
+    next_month = timezone.now() + datetime.timedelta(days=30)
+    future_question = Question('Back from the future', pub_date=next_month)
     assert not future_question.was_published_recently()
 
 
@@ -30,8 +30,8 @@ def test_was_published_recently_with_old_question():
     was_published_recently() returns False for questions whose pub_date
     is older than 1 day.
     """
-    time = timezone.now() - datetime.timedelta(days=1, seconds=1)
-    old_question = Question(pub_date=time)
+    last_year = timezone.now() - datetime.timedelta(days=365)
+    old_question = Question('Why is there something instead of nothing?', pub_date=last_year)
     assert not old_question.was_published_recently()
 
 
@@ -40,8 +40,8 @@ def test_was_published_recently_with_recent_question():
     was_published_recently() returns True for questions whose pub_date
     is within the last day.
     """
-    time = timezone.now() - datetime.timedelta(hours=23, minutes=59, seconds=59)
-    recent_question = Question(pub_date=time)
+    last_night = timezone.now() - datetime.timedelta(hours=24)
+    recent_question = Question('Dude, where is my car?', pub_date=last_night)
     assert recent_question.was_published_recently()
 
 

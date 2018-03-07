@@ -16,45 +16,27 @@ def n_days_later(n):
 
 
 def test_was_published_recently_with_future_question():
-    """
-    was_published_recently() returns False for questions whose pub_date
-    is in the future.
-    """
     next_month = timezone.now() + datetime.timedelta(days=30)
     future_question = Question('Back from the future', pub_date=next_month)
     assert not future_question.was_published_recently()
 
 
 def test_was_published_recently_with_old_question():
-    """
-    was_published_recently() returns False for questions whose pub_date
-    is older than 1 day.
-    """
     last_year = timezone.now() - datetime.timedelta(days=365)
     old_question = Question('Why is there something instead of nothing?', pub_date=last_year)
     assert not old_question.was_published_recently()
 
 
 def test_was_published_recently_with_recent_question():
-    """
-    was_published_recently() returns True for questions whose pub_date
-    is within the last day.
-    """
     last_night = timezone.now() - datetime.timedelta(hours=24)
     recent_question = Question('Dude, where is my car?', pub_date=last_night)
     assert recent_question.was_published_recently()
 
 
-def create_question(question_text, *, pub_date=None):
-    """
-    Create a question with the given `question_text`.
-
-    If `pub_date` is None, the question was published right, now.
-    """
+def create_question(question_text, pub_date=None):
     if not pub_date:
         pub_date = timezone.now()
-    res = Question.objects.create(question_text=question_text, pub_date=pub_date)
-    return res
+    return Question.objects.create(question_text=question_text, pub_date=pub_date)
 
 
 def get_latest_list(client):
@@ -86,10 +68,6 @@ def test_no_questions(client):
 
 @pytest.mark.django_db
 def test_past_question(client):
-    """
-    Questions with a pub_date in the past are displayed on the
-    index page.
-    """
     create_question(question_text="Past question.", pub_date=n_days_ago(30))
     latest_list = get_latest_list(client)
     assert_question_list_equals(latest_list, ["Past question."])
@@ -97,10 +75,6 @@ def test_past_question(client):
 
 @pytest.mark.django_db
 def test_future_question(client):
-    """
-    Questions with a pub_date in the future aren't displayed on
-    the index page.
-    """
     create_question(question_text="Future question.", pub_date=n_days_later(30))
     response = client.get(reverse('polls:index'))
     assert_no_polls(response.rendered_content)
@@ -110,10 +84,6 @@ def test_future_question(client):
 
 @pytest.mark.django_db
 def test_future_question_and_past_question(client):
-    """
-    Even if both past and future questions exist, only past questions
-    are displayed.
-    """
     create_question(question_text="Past question.", pub_date=n_days_ago(30))
     create_question(question_text="Future question.", pub_date=n_days_later(30))
     latest_list = get_latest_list(client)
@@ -122,9 +92,6 @@ def test_future_question_and_past_question(client):
 
 @pytest.mark.django_db
 def test_two_past_questions(client):
-    """
-    The questions index page may display multiple questions.
-    """
     create_question(question_text="Past question 1.", pub_date=n_days_ago(30))
     create_question(question_text="Past question 2.", pub_date=n_days_ago(5))
     latest_list = get_latest_list(client)
